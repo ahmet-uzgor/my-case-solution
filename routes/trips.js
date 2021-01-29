@@ -1,4 +1,3 @@
-const { config } = require('dotenv/types');
 const express = require('express');
 const router = express.Router();
 const  { client } = require('../config/database');
