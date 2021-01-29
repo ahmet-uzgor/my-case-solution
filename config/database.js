@@ -1,13 +1,23 @@
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
 
-module.exports =  (function connectToDB(){
-    mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true});
-    const db = mongoose.connection;
-    db.on('error', console.error.bind(console, 'connection error:'));
-    db.once('open', function() {
-        console.log('we are connected')
-    });
-})();
+const uri = process.env.MONGODB_URI;
+// Create a new MongoClient
+const client = new MongoClient(uri);
+// Function to connect to the server
+async function connect() {
+  try {
+    // Connect the client to the server
+    await client.connect();
+    // Establish and verify connection
+    await client.db("admin").command({ ping: 1 });
+    console.log("Connected successfully to server");
+  } catch(err) {
+      console.log('DB Error, Not connected')
+  }
+}
+
+
+module.exports = {connect ,client}
 
 
 
