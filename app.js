@@ -7,11 +7,13 @@ const dotEnv = require('dotenv').config();
 const verifyToken = require('./services/jwtHelper');
 
 const usersRouter = require('./routes/users');
+const tripRouter = require('./routes/trips');
 
 const app = express();
 
 // Connect to Mongo DB
 const mongo = require('./config/database');
+mongo.connect().catch(console.dir);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -25,7 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', usersRouter)
 app.use('/api', verifyToken)
-//app.use('/api', verifyToken);
+app.use('/api/trips', tripRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
