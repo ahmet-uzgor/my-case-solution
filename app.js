@@ -6,9 +6,9 @@ const logger = require('morgan');
 const dotEnv = require('dotenv').config();
 const verifyToken = require('./services/jwtHelper');
 
-// Connect to Mongo DB
-const mongo = require('./config/database')
-mongo.connectToDB();
+// // Connect to Mongo DB
+// const mongo = require('./config/database')
+// mongo.connectToDB();
 
 // Add routers to app
 const usersRouter = require('./routes/users');
