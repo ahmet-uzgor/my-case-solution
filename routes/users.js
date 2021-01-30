@@ -34,9 +34,9 @@ router.post('/register', (req,res)=>{
 router.post('/authenticate', (req,res)=>{
   const {username , password} = req.body;
   
-  if (!username || !password) res.json({ message: 'Username or password is null' })
+  if (!username || !password) res.json({ message: 'Username or password is not specified' })
   const user = findByUsername(username)
-  if (!user) res.json('User not found')
+  if (!user) res.json({ message: 'Username or password is wrong' })
   else authenticate(req, res, user)
 
 });

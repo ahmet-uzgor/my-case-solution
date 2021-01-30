@@ -40,6 +40,6 @@ client.connect().then((mongoDB)=> {
         console.log("MyBody",req.body);
         res.json({list: 'report'})
     })
-});
+}).catch(err => console.log('Connection Error'));
 
 module.exports = router;
