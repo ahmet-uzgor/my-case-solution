@@ -9,20 +9,21 @@ client.connect().then((mongoDB)=> {
     router.post('/all', async (req, res) => {
         const { Point , radius, start_date, end_date } = req.body;
         if (!Point || !radius) res.json({message: 'Required parameters are missing, Point & radius'})
-        console.log("MyBody",req.body);
+        console.log("MyBody",typeof req.body.Point,typeof Point.lat, typeof radius);
         const query = {
             "start": {
                 $nearSphere: {
                     $geometry: { type: "Point", coordinates: [Point.long, Point.lat] },
-                    $maxDistance: radius,
+                    $maxDistance: radius*1000,
                 },
-            },
+            }
         };
+        if (start_date && new Date(start_date).toString() !== 'Invalid Date') query['start_date'] = new Date(start_date);
+        if (end_date && new Date(end_date).toString() !== 'Invalid Date') query['complete_date'] = new Date(end_date);
         //const query = { start: {$geoWithin: { $center: [ [-97.38887025, 31.17821068], 5/6378.1 ] } } }
-        const den = tripCollection.find(query)
+        const tripsList = [];
+        const den = tripCollection.find(query).forEach(data => tripsList.push(data)).finally((data) => { res.json({list: tripsList}) })
         //den.then(data => console.log(data))
-
-        res.json({list: 'tripList'})
     })
 
     // it gets the minimum and maximum distance travelled for the trips 
