@@ -1,5 +1,5 @@
 const usersList = [
-    {_id: '12345', username: 'test', password:'test' }
+    {_id: '12345', username: 'test', password:'$2a$10$ziYuCIcF1Y0FxtYfOduNEebCKymncla/cJitGQIs9SHxbMb94HcDW' }
 ];
 
 const { v4: uuidv4 } = require('uuid');
