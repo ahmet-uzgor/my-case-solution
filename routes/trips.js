@@ -5,16 +5,15 @@ const  { client } = require('../config/database');
 client.connect().then((mongoDB)=> {
     const tripCollection = mongoDB.db('case').collection('trips') // it sets the path of trip collection 
 
-    // it makes a query all trips which are started in a region specified by a point 
+    // it gets all trips which are started in a region specified by a point and time(optional) 
     router.post('/all', async (req, res) => {
         const { Point , radius, start_date, end_date } = req.body;
         if (!Point || !radius) res.json({message: 'Required parameters are missing, Point & radius'})
-        console.log("MyBody",typeof req.body.Point,typeof Point.lat, typeof radius);
+
         const query = {
             "start": {
-                $nearSphere: {
-                    $geometry: { type: "Point", coordinates: [Point.long, Point.lat] },
-                    $maxDistance: radius*1000,
+                $geoWithin: {
+                    $centerSphere: [ [ Point.long, Point.lat ], radius/6378.1 ]
                 },
             }
         };
@@ -22,24 +21,56 @@ client.connect().then((mongoDB)=> {
         if (end_date && new Date(end_date).toString() !== 'Invalid Date') query['complete_date'] = new Date(end_date);
         //const query = { start: {$geoWithin: { $center: [ [-97.38887025, 31.17821068], 5/6378.1 ] } } }
         const tripsList = [];
-        const den = tripCollection.find(query).forEach(data => tripsList.push(data)).finally((data) => { res.json({list: tripsList}) })
-        //den.then(data => console.log(data))
+        const den = tripCollection.find(query).forEach(data => tripsList.push(data.distance_travelled)).finally((data) => { res.json({list: tripsList}) })
     })
 
     // it gets the minimum and maximum distance travelled for the trips 
     router.post('/getDistance', (req, res) => {
-        const { Point , radius } = req.body;
+        const { Point , radius, start_date, end_date } = req.body;
         if (!Point || !radius) res.json({message: 'Required parameters are missing, Point & radius'})
-        console.log("MyBody",req.body);
-        res.json({list: 'distances'})
+
+        const query = [
+            { $sort: { year: 1 } },
+            {
+                $match: {
+                    "start": {
+                        $geoWithin: {
+                            $centerSphere: [ [ Point.long, Point.lat ], radius/6378.1 ]
+                        }
+                    }
+                }
+            },
+            {
+                $group: { _id: null , maxDistance: { $max: "$distance_travelled" }, minDistance: { $min: "$distance_travelled" } }
+            },
+            { $project: { _id: 0 } }
+        ]
+        
+        tripCollection.aggregate(query).toArray().then(data => res.json({ list: data }))
     })
 
-    // it gets a report which should include the number of trips grouped by vehicle model year for the trips
-    router.post('/getReport', (req, res) => {
-        const { Point , radius } = req.body;
+    // it gets a report which should include the number of trips grouped by vehicle model year for the trips 
+    router.post('/getReport', async (req, res) => {
+        const { Point , radius, start_date, end_date } = req.body;
         if (!Point || !radius) res.json({message: 'Required parameters are missing, Point & radius'})
-        console.log("MyBody",req.body);
-        res.json({list: 'report'})
+
+        const query = [
+            { $sort: { year: 1 } },
+            {
+                $match: {
+                    "start": {
+                        $geoWithin: {
+                            $centerSphere: [ [ Point.long, Point.lat ], radius/6378.1 ]
+                        }
+                    }
+                }
+            },
+            {
+                $group: { _id: "$year", numberOfTrips: { $sum: 1 } }
+            }
+        ]
+        
+        tripCollection.aggregate(query).toArray().then(data => res.json({ list: data }))
     })
 }).catch(err => console.log('Connection Error'));
 
