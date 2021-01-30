@@ -1,4 +1,6 @@
-const usersList = [];
+const usersList = [
+    {_id: '12345', username: 'test', password:'test' }
+];
 
 const { v4: uuidv4 } = require('uuid');
 
