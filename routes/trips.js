@@ -15,13 +15,13 @@ client.connect().then((mongoDB)=> { // it starts mongoDb connection to find nece
         const query = queries(Point, radius).all; // it keeps query for listing all trips specified by a point 
         if (start_date && new Date(start_date).toString() !== 'Invalid Date') {
             const a = new Date(start_date); // it converts string to intended UTC time but it subtracts 3 hours
-            const utcTime = new Date(a.setHours(a.getHours() +3)); // it adds 3 hours to (a) intended time 
+            const utcTime = new Date(start_date); // it adds 3 hours to (a) intended time  .setHours(a.getHours() +3)
             a.setMinutes(a.getMinutes() +1) // in db times are in dd-mm-yy %H:%M:%S but in paramaters no second so to find trips regarding time it controls between given time and given time +1 minute
             query.$and = [{ start_date: { $gte: utcTime } }, {start_date: {$lt: a }}] // if start_date or end_date is specified, it adds to query for date
         }
         if (end_date && new Date(end_date).toString() !== 'Invalid Date') {
             const b = new Date(end_date);
-            const utcTime = new Date(b.setHours(b.getHours() + 3));
+            const utcTime = new Date(end_date); // b.setHours(b.getHours() + 3)
             b.setMinutes(b.getMinutes() +1)
             query['$and'] = [{ complete_date: { $gte: utcTime } }, {complete_date: {$lt: b }}]
         }
