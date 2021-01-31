@@ -127,6 +127,22 @@ describe('tests "/api/trips" for getReport, all & getDistance endpoints', functi
       });
   });
 
+  it('/api/trips/all endpoint with token and start_date or end_date param returns all trips list which are specified by a Point and a date', function(done) {
+    const body = {token: token, Point: { "long": -97.3888702, "lat": 31.17821068 }, radius: 5, start_date: "07/27/2016 02:37" }
+    request
+      .post('/api/trips/all')
+      .send(body) // x-www-form-urlencoded upload
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        if(err) return done(err);
+        expect(typeof res.body.list).toBe('object');
+        expect(res.body.list.length >= 1).toBe(true);
+        expect(res.body.list[0].model).not.toBeNull();
+        return done();
+      });
+  });
+
   it('/api/trips/getDistance methods with token and true parameters returns all trips list which are specified by a Point', function(done) {
     const body = {token: token, Point: {long: -97.32, lat: 31.18}, radius: 5 }
     request
@@ -181,6 +197,34 @@ describe('tests "/api/trips" for getReport, all & getDistance endpoints', functi
       .end((err, res) => {
         if(err) return done(err);
         expect(res.body.message).toBe('Wrong token is provided');
+        return done();
+      });
+  });
+
+  it('/api/trips/ endpoint with token but missing parameters returns error message', function(done) {
+    const body = {token: token, Point: {long: -97.32, lat: 31.18} } // radius is missing parameter.
+    request
+      .post('/api/trips/all')
+      .send(body) // x-www-form-urlencoded upload
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        if(err) return done(err);
+        expect(res.body.message).toBe('Required parameters are missing, Point & radius');
+        return done();
+      });
+  });
+
+  it('/api/trips/ endpoint with token but if parameters are not in intended format returns error message', function(done) {
+    const body = {token: token, Point: {long: '-97.32', lat: 31.18}, radius:5 } // Point.long parameter is string but it should be number.
+    request
+      .post('/api/trips/all')
+      .send(body) // x-www-form-urlencoded upload
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        if(err) return done(err);
+        expect(res.body.message).toBe('Parameters are not in intended formats, all should be number');
         return done();
       });
   });
