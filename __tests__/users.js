@@ -4,7 +4,7 @@ const client = require('../config/database');
 const request = supertest(app)
 let token ;
 
-beforeAll(async (done)=> {
+beforeAll(async (done)=> { // it sets mongodb connection and authentication token
   await client.connectToDB()
   request
     .post('/authenticate')
@@ -18,17 +18,17 @@ beforeAll(async (done)=> {
 })
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  jest.useFakeTimers(); // to be able to fix async import time error , it creates fake timer beforeEach test
 })
 
 
 afterEach(() => {
-  jest.runOnlyPendingTimers()
+  jest.runOnlyPendingTimers(); //it resets timer as normal to convert fakeTimer to normal 
   jest.useRealTimers()
 })
 
 describe('POST "/" root endpoint for login & authentication', function() {
-  it('/register method with missing parameter returns', function(done) {
+  it('/register method with missing parameter returns error message', function(done) {
     request
       .post('/register')
       .send('username=john') // x-www-form-urlencoded upload
