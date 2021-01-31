@@ -9,8 +9,8 @@ client.connect().then((mongoDB)=> { // it starts mongoDb connection to find nece
     // it gets all trips which are started in a region specified by a point and time(optional) 
     router.post('/all', async (req, res) => {
         const { Point , radius, start_date, end_date } = req.body; // start_date and end_date should be (MM/DD/YY %H:%M)
-        if (!Point || !Point.long || !Point.lat || !radius) res.json({message: 'Required parameters are missing, Point & radius'}) // if Point or radius is not given, it returns message
-        if (typeof Point.long !== 'number' || typeof Point.lat !== 'number' || typeof radius !== 'number') res.json({ message : 'Parameters are not in intended formats, all should be number'})
+        if (!Point || !Point.long || !Point.lat || !radius) return res.json({message: 'Required parameters are missing, Point & radius'}) // if Point or radius is not given, it returns message
+        if (typeof Point.long !== 'number' || typeof Point.lat !== 'number' || typeof radius !== 'number') return res.json({ message : 'Parameters are not in intended formats, all should be number'})
 
         const query = queries(Point, radius).all; // it keeps query for listing all trips specified by a point 
         if (start_date && new Date(start_date).toString() !== 'Invalid Date') {
@@ -34,8 +34,8 @@ client.connect().then((mongoDB)=> { // it starts mongoDb connection to find nece
     // it gets the minimum and maximum distance travelled for the trips which are specified by a Point
     router.post('/getDistance', (req, res) => {
         const { Point , radius } = req.body;
-        if (!Point || !Point.long || !Point.lat || !radius) res.json({message: 'Required parameters are missing, Point & radius'})
-        if (typeof Point.long !== 'number' || typeof Point.lat !== 'number' || typeof radius !== 'number') res.json({ message : 'Parameters are not in intended formats, all should be number'})
+        if (!Point || !Point.long || !Point.lat || !radius) return res.json({message: 'Required parameters are missing, Point & radius'})
+        if (typeof Point.long !== 'number' || typeof Point.lat !== 'number' || typeof radius !== 'number') return res.json({ message : 'Parameters are not in intended formats, all should be number'})
 
         const query = queries(Point, radius).getDistance;
         
@@ -46,8 +46,8 @@ client.connect().then((mongoDB)=> { // it starts mongoDb connection to find nece
     // it gets a report which should include the number of trips grouped by vehicle model year for the trips 
     router.post('/getReport', (req, res) => {
         const { Point , radius } = req.body;
-        if (!Point || !Point.long || !Point.lat || !radius) res.json({message: 'Required parameters are missing, Point & radius'})
-        if (typeof Point.long !== 'number' || typeof Point.lat !== 'number' || typeof radius !== 'number') res.json({ message : 'Parameters are not in intended formats, all should be number'})
+        if (!Point || !Point.long || !Point.lat || !radius) return res.json({message: 'Required parameters are missing, Point & radius'})
+        if (typeof Point.long !== 'number' || typeof Point.lat !== 'number' || typeof radius !== 'number') return res.json({ message : 'Parameters are not in intended formats, all should be number'})
 
         const query = queries(Point, radius).getReport;
         
