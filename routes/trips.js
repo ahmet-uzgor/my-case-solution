@@ -8,16 +8,27 @@ client.connect().then((mongoDB)=> { // it starts mongoDb connection to find nece
 
     // it gets all trips which are started in a region specified by a point and time(optional) 
     router.post('/all', async (req, res) => {
-        const { Point , radius, start_date, end_date } = req.body;
+        const { Point , radius, start_date, end_date } = req.body; // start_date and end_date should be (MM/DD/YY %H:%M)
         if (!Point || !Point.long || !Point.lat || !radius) res.json({message: 'Required parameters are missing, Point & radius'}) // if Point or radius is not given, it returns message
         if (typeof Point.long !== 'number' || typeof Point.lat !== 'number' || typeof radius !== 'number') res.json({ message : 'Parameters are not in intended formats, all should be number'})
 
-        const query = queries(Point, radius).all; // it keeps query for listing all trips by specified a point 
-        if (start_date && new Date(start_date).toString() !== 'Invalid Date') query['start_date'] = new Date(start_date); // if start_date or end_date is specified, it adds to query for date
-        if (end_date && new Date(end_date).toString() !== 'Invalid Date') query['complete_date'] = new Date(end_date);
+        const query = queries(Point, radius).all; // it keeps query for listing all trips specified by a point 
+        if (start_date && new Date(start_date).toString() !== 'Invalid Date') {
+            const a = new Date(start_date); // it converts string to intended UTC time but it subtracts 3 hours
+            const utcTime = new Date(a.setHours(a.getHours() +3)); // it adds 3 hours to (a) intended time 
+            a.setMinutes(a.getMinutes() +1) // in db times are in dd-mm-yy %H:%M:%S but in paramaters no second so to find trips regarding time it controls between given time and given time +1 minute
+            query.$and = [{ start_date: { $gte: utcTime } }, {start_date: {$lt: a }}] // if start_date or end_date is specified, it adds to query for date
+        }
+        if (end_date && new Date(end_date).toString() !== 'Invalid Date') {
+            const b = new Date(end_date);
+            const utcTime = new Date(b.setHours(b.getHours() + 3));
+            b.setMinutes(b.getMinutes() +1)
+            query['$and'] = [{ complete_date: { $gte: utcTime } }, {complete_date: {$lt: b }}]
+        }
 
         // it made a query for matched collection and saved to tripsList and respond as json object with data 
         tripCollection.find(query).toArray().then(data => res.json({ list: data }))
+        //res.json({deneme: "deneme"});
     })
 
     // it gets the minimum and maximum distance travelled for the trips which are specified by a Point
