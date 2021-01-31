@@ -1,7 +1,31 @@
 const supertest = require('supertest');
 const app = require('../app');
+const client = require('../config/database');
 const request = supertest(app)
-let token = "";
+let token ;
+
+beforeAll(async (done)=> {
+  await client.connectToDB()
+  request
+    .post('/authenticate')
+    .send('username=test&password=12345') // x-www-form-urlencoded upload
+    .set('Accept', 'application/json')
+    .end((err, res) => {
+      if(err) return err;
+      token = res.body.token;
+      return done();
+    });
+})
+
+beforeEach(() => {
+  jest.useFakeTimers();
+})
+
+
+afterEach(() => {
+  jest.runOnlyPendingTimers()
+  jest.useRealTimers()
+})
 
 describe('POST "/" root endpoint for login & authentication', function() {
   it('/register method with missing parameter returns', function(done) {
@@ -85,11 +109,80 @@ describe('POST "/" root endpoint for login & authentication', function() {
 });
 
 
-// describe('tests "/" root endpoint for login and authentication', function() {
-//   it('register endpoint', async function(done) {
-//     const res = await request.post('/register')
-//     .send({ username: 'ahmet10', password: 12345 }).expect(200);
-//     expect(res.body.message).toBe('User created');
-//     done()
-//   });
-// });
+describe('tests "/api/trips" for getReport, all & getDistance endpoints', function() {
+
+  it('/api/trips/all endpoint with token and true parameters returns all trips list which are specified by a Point', function(done) {
+    const body = {token: token, Point: {long: -97.32, lat: 31.18}, radius: 5 }
+    request
+      .post('/api/trips/all')
+      .send(body) // x-www-form-urlencoded upload
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        if(err) return done(err);
+        expect(typeof res.body.list).toBe('object');
+        expect(res.body.list.length >= 1).toBe(true);
+        expect(res.body.list[0].model).not.toBeNull();
+        return done();
+      });
+  });
+
+  it('/api/trips/getDistance methods with token and true parameters returns all trips list which are specified by a Point', function(done) {
+    const body = {token: token, Point: {long: -97.32, lat: 31.18}, radius: 5 }
+    request
+      .post('/api/trips/getDistance')
+      .send(body) // x-www-form-urlencoded upload
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        if(err) return done(err);
+        expect(typeof res.body.list).toBe('object');
+        expect(res.body.list[0].maxDistance).not.toBeNull();
+        return done();
+      });
+  }); 
+
+  it('/api/trips/getReport endpoint with token and true parameters returns report with number of trips that done in model year', function(done) {
+    const body = {token: token, Point: {long: -97.32, lat: 31.18}, radius: 5 }
+    request
+      .post('/api/trips/getReport')
+      .send(body) // x-www-form-urlencoded upload
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        if(err) return done(err);
+        expect(typeof res.body.list).toBe('object');
+        expect(res.body.list[0].numberOfTrips).not.toBeNull();
+        return done();
+      });
+  });
+
+  it('/api/trips/ methods without auth token returns error message', function(done) {
+    request
+      .post('/api/trips/all')
+      .type('form')
+      .send({ Point: {long: -97.32, lat: 31.18}, radius: 5 }) // x-www-form-urlencoded upload
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        if(err) return done(err);
+        expect(res.body.message).toBe('Token is not provided');
+        return done();
+      });
+  });
+
+  it('/api/trips/ methods with wrong auth token returns error message', function(done) {
+    request
+      .post('/api/trips/all')
+      .type('form')
+      .send({ token: "wrongtoken12345", Point: {long: -97.32, lat: 31.18}, radius: 5 }) // x-www-form-urlencoded upload
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        if(err) return done(err);
+        expect(res.body.message).toBe('Wrong token is provided');
+        return done();
+      });
+  });
+
+});
