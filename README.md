@@ -5,7 +5,7 @@ Used technologies are listed below:
 
 Node.js => express, mongodb (native) for database, jwt - jsonwebtoken for authentication, bcrypt.js for hashing, jest + supertest for testing
 
-To be able to start app please follow below codes;
+To be able to start app please follow below codes; and please change MONGODB_URI with yours under .env
 ```
 git clone https://github.com/ahmet-uzgor/my-case-solution.git
 cd my-case-colution
